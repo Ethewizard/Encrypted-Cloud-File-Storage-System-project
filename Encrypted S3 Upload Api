@@ -1,0 +1,62 @@
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.io.*;
+
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
+
+@SpringBootApplication
+@RestController
+@RequestMapping("/api/storage")
+public class SecureFileStorage {
+
+    private static final String BUCKET_NAME = "your-bucket-name";
+    private static final String AES_ALGORITHM = "AES";
+    private static SecretKey secretKey = generateKey();
+    private static final S3Client s3 = S3Client.create();
+
+    public static SecretKey generateKey() {
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(AES_ALGORITHM);
+            keyGenerator.init(128);
+            return keyGenerator.generateKey();
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating key", e);
+        }
+    }
+
+    public static byte[] encryptFile(byte[] fileData) throws Exception {
+        Cipher cipher = Cipher.getInstance(AES_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        return cipher.doFinal(fileData);
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(@RequestBody byte[] fileData) {
+        try {
+            byte[] encryptedData = encryptFile(fileData);
+            String fileName = "encrypted-file.bin";
+            
+            s3.putObject(PutObjectRequest.builder().bucket(BUCKET_NAME).key(fileName).build(),
+                    RequestBody.fromBytes(encryptedData));
+
+            return ResponseEntity.ok("File encrypted and uploaded successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error encrypting/uploading file.");
+        }
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(SecureFileStorage.class, args);
+    }
+}
