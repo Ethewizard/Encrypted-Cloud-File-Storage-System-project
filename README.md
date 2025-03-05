@@ -1,4 +1,4 @@
-# Encrypted-Cloud-File-Storage-System-project
+# Encrypted Cloud File Storage System project
 
 🛡️ Encrypted S3 Upload API
 
