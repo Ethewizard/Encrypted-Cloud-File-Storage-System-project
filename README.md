@@ -12,21 +12,6 @@ A secure file storage API built with **Spring Boot** that encrypts files using *
 
 ---
 
-## 📂 Project Structure
-
-```
-aws-encrypted-s3-upload-api/
-├── src/                   # Application source code
-│   ├── main/java          # Java code
-│   ├── resources          # Application properties
-├── pom.xml                # Maven dependencies
-├── Dockerfile             # Containerization (Optional)
-├── README.md              # Project documentation
-└── .github/workflows      # CI/CD pipelines
-```
-
----
-
 ## 📦 Technologies Used
 - 🧑‍💻 **Java & Spring Boot**
 - ☁️ **AWS SDK for S3**
